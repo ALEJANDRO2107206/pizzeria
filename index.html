@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Forno Vivo: pizza napolitana artesanal, ingredientes de temporada y delivery en la ciudad.">
+	<title>Forno Vivo | Pizza napolitana artesanal</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet">
+	<style>
+		:root { --ink:#20211e; --cream:#f8f3e9; --tomato:#df492f; --tomato-dark:#b93726; --sage:#8b9d70; --line:#ddd5c7; --white:#fffdf8; }
+		* { box-sizing:border-box; }
+		html { scroll-behavior:smooth; }
+		body { margin:0; color:var(--ink); background:var(--cream); font-family:'DM Sans',sans-serif; }
+		a { color:inherit; text-decoration:none; }
+		button { font:inherit; cursor:pointer; }
+		.announcement { background:var(--ink); color:#fffaf1; padding:10px 24px; text-align:center; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+		header { max-width:1240px; margin:auto; padding:22px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+		.brand { display:flex; align-items:center; gap:11px; font-family:Fraunces,serif; font-size:25px; font-weight:800; }
+		.brand-mark { width:32px; height:32px; border-radius:50%; background:var(--tomato); display:grid; place-items:center; color:#fff9eb; font-family:serif; font-size:20px; }
+		nav { display:flex; gap:30px; font-size:14px; font-weight:700; }
+		nav a:hover { color:var(--tomato); }
+		.header-actions { display:flex; align-items:center; gap:10px; }
+		.order-link { color:var(--tomato); font-size:13px; font-weight:700; }
+		.cart-button { border:1px solid var(--ink); background:transparent; padding:10px 15px; border-radius:4px; display:flex; align-items:center; gap:8px; font-weight:700; }
+		.cart-count { background:var(--tomato); color:white; border-radius:50%; min-width:20px; height:20px; display:grid; place-items:center; font-size:11px; }
+		.hero { max-width:1240px; margin:0 auto; padding:36px 32px 72px; display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
+		.eyebrow { color:var(--tomato); text-transform:uppercase; font-size:12px; font-weight:700; letter-spacing:.16em; margin:0 0 20px; }
+		h1,h2,h3 { font-family:Fraunces,serif; margin:0; line-height:.98; }
+		h1 { font-size:clamp(54px,7vw,92px); max-width:570px; letter-spacing:-.04em; }
+		.hero-copy { font-size:17px; line-height:1.6; max-width:455px; margin:26px 0 30px; color:#57564f; }
+		.primary { border:0; background:var(--tomato); color:white; padding:15px 22px; border-radius:4px; font-weight:700; transition:background .2s, transform .2s; }
+		.primary:hover { background:var(--tomato-dark); transform:translateY(-2px); }
+		.hero-note { display:inline-flex; gap:8px; align-items:center; margin-left:20px; font-size:12px; color:#66635b; }
+		.hero-note b { color:var(--sage); font-size:18px; }
+		.hero-visual { position:relative; }
+		.hero-visual img { width:100%; aspect-ratio:1/1.05; object-fit:cover; border-radius:3px; display:block; }
+		.stamp { position:absolute; left:-34px; bottom:34px; background:var(--sage); color:#fffdf8; width:128px; height:128px; border-radius:50%; display:grid; place-items:center; text-align:center; padding:20px; font-size:12px; line-height:1.35; font-weight:700; transform:rotate(-12deg); }
+		.stamp strong { display:block; font-family:Fraunces,serif; font-size:22px; }
+		.menu-section { background:var(--white); border-top:1px solid var(--line); padding:78px 32px 90px; }
+		.section-inner { max-width:1176px; margin:auto; }
+		.section-heading { display:flex; align-items:end; justify-content:space-between; gap:25px; margin-bottom:35px; }
+		h2 { font-size:clamp(40px,5vw,64px); letter-spacing:-.04em; }
+		.section-heading p { max-width:310px; line-height:1.5; color:#716d64; font-size:14px; margin:0; }
+		.filters { display:flex; gap:8px; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:30px; overflow:auto; }
+		.filter { white-space:nowrap; background:transparent; border:0; padding:8px 14px; color:#79756c; font-weight:700; font-size:13px; }
+		.filter.active { background:var(--ink); color:var(--white); border-radius:3px; }
+		.pizza-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:30px 20px; }
+		.pizza-card { border:1px solid var(--line); background:var(--cream); padding:10px 10px 18px; position:relative; transition:transform .2s, box-shadow .2s; }
+		.pizza-card:hover { transform:translateY(-5px); box-shadow:0 12px 30px #20211e12; }
+		.pizza-card.hidden { display:none; }
+		.pizza-card img { width:100%; aspect-ratio:1.18; object-fit:cover; display:block; }
+		.pizza-info { padding:17px 6px 0; }
+		.pizza-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+		h3 { font-size:25px; }
+		.price { color:var(--tomato); font-size:16px; font-weight:700; }
+		.pizza-info p { color:#777268; font-size:13px; line-height:1.5; min-height:39px; margin:9px 0 15px; }
+		.add { width:100%; border:1px solid var(--ink); background:transparent; padding:10px; font-weight:700; font-size:13px; }
+		.add:hover { background:var(--ink); color:white; }
+		.tag { position:absolute; top:20px; left:20px; background:var(--sage); color:white; padding:5px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; }
+		.story { max-width:1240px; margin:auto; padding:92px 32px; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+		.story img { width:100%; aspect-ratio:1.25; object-fit:cover; }
+		.story p { color:#66635b; line-height:1.7; max-width:460px; }
+		.details { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--line); margin-top:34px; padding-top:19px; gap:20px; }
+		.details strong { display:block; font-family:Fraunces,serif; font-size:22px; margin-bottom:5px; }
+		.details span { color:#777268; font-size:12px; }
+		footer { background:var(--ink); color:#fffaf1; padding:45px 32px; }
+		.footer-inner { max-width:1176px; margin:auto; display:flex; justify-content:space-between; gap:30px; align-items:end; }
+		footer p { color:#aaa79e; font-size:13px; margin:12px 0 0; }
+		.footer-links { display:flex; gap:20px; font-size:13px; }
+		.cart-panel { position:fixed; z-index:5; right:22px; bottom:22px; width:min(360px,calc(100vw - 44px)); background:var(--white); border:1px solid var(--ink); box-shadow:0 12px 35px #20211e25; padding:22px; transform:translateY(150%); transition:transform .3s ease; }
+		.cart-panel.open { transform:translateY(0); }
+		.cart-head { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:14px; }
+		.cart-head h3 { font-size:24px; }
+		.close { border:0; background:transparent; font-size:23px; }
+		#cart-items { padding:14px 0; max-height:180px; overflow:auto; }
+		.cart-item { display:flex; justify-content:space-between; gap:12px; padding:8px 0; font-size:13px; }
+		.cart-item span { color:#777268; }
+		.cart-total { border-top:1px solid var(--line); padding-top:14px; display:flex; justify-content:space-between; font-weight:700; }
+		.checkout { width:100%; margin-top:15px; }
+		@media (max-width:760px) { header { padding:18px 20px; } nav,.order-link { display:none; } .hero { padding:30px 20px 64px; grid-template-columns:1fr; gap:42px; } .hero-note { display:block; margin:16px 0 0; } .stamp { left:-10px; bottom:20px; width:100px; height:100px; font-size:10px; } .stamp strong { font-size:18px; } .menu-section,.story { padding-left:20px; padding-right:20px; } .section-heading,.footer-inner { align-items:flex-start; flex-direction:column; } .pizza-grid { grid-template-columns:1fr; gap:18px; } .pizza-card img { aspect-ratio:1.35; } .story { grid-template-columns:1fr; gap:35px; padding-top:65px; padding-bottom:65px; } .details { grid-template-columns:1fr 1fr 1fr; gap:8px; } footer { padding:35px 20px; } .footer-links { flex-wrap:wrap; } }
+	</style>
+</head>
+<body>
+	<div class="announcement">Horno encendido · Delivery gratis desde $20.000</div>
+	<header>
+		<a class="brand" href="#inicio"><span class="brand-mark">✦</span> forno vivo</a>
+		<nav aria-label="Navegación principal"><a href="#menu">La carta</a><a href="#historia">Nuestra historia</a><a href="#visitanos">Visítanos</a></nav>
+		<div class="header-actions"><a class="order-link" href="#menu">Pedir ahora →</a><button class="cart-button" id="cart-toggle" aria-label="Abrir carrito">Carrito <span class="cart-count" id="cart-count">0</span></button></div>
+	</header>
+	<main>
+		<section class="hero" id="inicio">
+			<div><p class="eyebrow">Pizza hecha sin prisa</p><h1>El sabor de Italia, a nuestra manera.</h1><p class="hero-copy">Masa madre, fuego vivo e ingredientes que cuentan una historia. Pizza napolitana artesanal para comer con las manos y quedarse un rato más.</p><a class="primary" href="#menu">Explorar la carta</a><span class="hero-note"><b>●</b> Abierto hoy hasta las 23:30</span></div>
+			<div class="hero-visual"><img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1000&q=85" alt="Pizza napolitana recién salida del horno"><div class="stamp"><span><strong>48h</strong> de fermentación<br>para una masa<br>inolvidable</span></div></div>
+		</section>
+		<section class="menu-section" id="menu"><div class="section-inner"><div class="section-heading"><div><p class="eyebrow">Directo del horno</p><h2>La carta</h2></div><p>Clásicas, vegetales y alguna que otra idea inesperada. Todas salen con nuestro aceite de oliva y un poco de fuego.</p></div>
+			<div class="filters" role="tablist"><button class="filter active" data-filter="all">Todas</button><button class="filter" data-filter="clasicas">Clásicas</button><button class="filter" data-filter="vegetales">Vegetales</button><button class="filter" data-filter="especiales">De la casa</button></div>
+			<div class="pizza-grid">
+				<article class="pizza-card" data-category="clasicas"><span class="tag">La favorita</span><img src="https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=700&q=85" alt="Pizza Margherita"><div class="pizza-info"><div class="pizza-top"><h3>Margherita</h3><span class="price">$12.900</span></div><p>Pomodoro, fior di latte, albahaca fresca y aceite de oliva.</p><button class="add" data-name="Margherita" data-price="12900">Agregar al pedido +</button></div></article>
+				<article class="pizza-card" data-category="especiales"><img src="https://images.unsplash.com/photo-1593560708920-61dd98c8c6d3?auto=format&fit=crop&w=700&q=85" alt="Pizza de pepperoni"><div class="pizza-info"><div class="pizza-top"><h3>Diavola</h3><span class="price">$14.900</span></div><p>Salame picante, mozzarella, tomate y miel de ají fermentado.</p><button class="add" data-name="Diavola" data-price="14900">Agregar al pedido +</button></div></article>
+				<article class="pizza-card" data-category="vegetales"><img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=700&q=85" alt="Pizza con vegetales asados"><div class="pizza-info"><div class="pizza-top"><h3>Orto</h3><span class="price">$14.500</span></div><p>Verduras de estación, stracciatella, limón y hierbas del huerto.</p><button class="add" data-name="Orto" data-price="14500">Agregar al pedido +</button></div></article>
+				<article class="pizza-card" data-category="clasicas"><img src="https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?auto=format&fit=crop&w=700&q=85" alt="Pizza Prosciutto"><div class="pizza-info"><div class="pizza-top"><h3>Prosciutto</h3><span class="price">$16.900</span></div><p>Prosciutto di Parma, mozzarella, rúcula y parmesano.</p><button class="add" data-name="Prosciutto" data-price="16900">Agregar al pedido +</button></div></article>
+				<article class="pizza-card" data-category="especiales"><span class="tag">Nueva</span><img src="https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?auto=format&fit=crop&w=700&q=85" alt="Pizza blanca con queso"><div class="pizza-info"><div class="pizza-top"><h3>Bianca</h3><span class="price">$15.900</span></div><p>Crema de ajo, mozzarella, hongos, tomillo y aceite de trufa.</p><button class="add" data-name="Bianca" data-price="15900">Agregar al pedido +</button></div></article>
+				<article class="pizza-card" data-category="vegetales"><img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=700&q=85" alt="Pizza con tomates y albahaca"><div class="pizza-info"><div class="pizza-top"><h3>Pomodoro</h3><span class="price">$13.900</span></div><p>Tomates confitados, burrata, albahaca y pimienta negra.</p><button class="add" data-name="Pomodoro" data-price="13900">Agregar al pedido +</button></div></article>
+			</div></div>
+		</section>
+		<section class="story" id="historia"><img src="https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=1000&q=85" alt="Pizza siendo horneada en un horno de piedra"><div><p class="eyebrow">Una mesa, muchas historias</p><h2>Hecho a mano.<br>Comido juntos.</h2><p>Forno Vivo nació de un viaje por el sur de Italia y de una obsesión: hacer la pizza que nos gustaría compartir con nuestros amigos. Trabajamos con productores locales, respetamos los tiempos y dejamos que el horno haga su magia.</p><div class="details"><div><strong>48h</strong><span>Fermentación lenta</span></div><div><strong>400°</strong><span>Temperatura del horno</span></div><div><strong>0 km</strong><span>Prisa en la cocina</span></div></div></div></section>
+	</main>
+	<footer id="visitanos"><div class="footer-inner"><div><a class="brand" href="#inicio"><span class="brand-mark">✦</span> forno vivo</a><p>Av. Italia 1420 · Providencia, Santiago<br>Martes a domingo · 13:00 — 23:30</p></div><div class="footer-links"><a href="#menu">Carta</a><a href="mailto:hola@fornovivo.cl">Contacto</a><a href="#inicio">Instagram</a></div></div></footer>
+	<aside class="cart-panel" id="cart-panel" aria-label="Carrito de compra"><div class="cart-head"><h3>Tu pedido</h3><button class="close" id="cart-close" aria-label="Cerrar carrito">×</button></div><div id="cart-items"><p style="color:#777268;font-size:13px">Todavía no has agregado pizzas.</p></div><div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div><button class="primary checkout" id="checkout">Continuar al pago</button></aside>
+	<script>
+		const cart = [];
+		const formatPrice = value => '$' + value.toLocaleString('es-CL');
+		const panel = document.querySelector('#cart-panel');
+		const renderCart = () => {
+			const items = document.querySelector('#cart-items');
+			document.querySelector('#cart-count').textContent = cart.length;
+			if (!cart.length) items.innerHTML = '<p style="color:#777268;font-size:13px">Todavía no has agregado pizzas.</p>';
+			else items.innerHTML = cart.map(item => `<div class="cart-item"><strong>${item.name}</strong><span>${formatPrice(item.price)}</span></div>`).join('');
+			document.querySelector('#cart-total').textContent = formatPrice(cart.reduce((sum, item) => sum + item.price, 0));
+		};
+		document.querySelectorAll('.add').forEach(button => button.addEventListener('click', () => { cart.push({ name:button.dataset.name, price:Number(button.dataset.price) }); renderCart(); panel.classList.add('open'); }));
+		document.querySelector('#cart-toggle').addEventListener('click', () => panel.classList.toggle('open'));
+		document.querySelector('#cart-close').addEventListener('click', () => panel.classList.remove('open'));
+		document.querySelector('#checkout').addEventListener('click', () => alert(cart.length ? '¡Gracias! En breve confirmaremos tu pedido.' : 'Agrega una pizza para continuar.'));
+		document.querySelectorAll('.filter').forEach(filter => filter.addEventListener('click', () => { document.querySelectorAll('.filter').forEach(item => item.classList.remove('active')); filter.classList.add('active'); document.querySelectorAll('.pizza-card').forEach(card => card.classList.toggle('hidden', filter.dataset.filter !== 'all' && card.dataset.category !== filter.dataset.filter)); }));
+	</script>
+</body>
+</html>
