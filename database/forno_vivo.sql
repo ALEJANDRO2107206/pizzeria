@@ -59,6 +59,7 @@ CREATE TABLE orders (
   customer_phone VARCHAR(30) NOT NULL,
   delivery_address VARCHAR(255) NOT NULL,
   total INT UNSIGNED NOT NULL,
+  payment_method ENUM('Nequi', 'PSE', 'Google Pay', 'Visa', 'Mastercard') NOT NULL DEFAULT 'PSE',
   status ENUM('received', 'preparing', 'on_the_way', 'delivered', 'cancelled') NOT NULL DEFAULT 'received',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
