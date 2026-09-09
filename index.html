@@ -163,8 +163,34 @@
 	<script>
 		const cart = [];
 		const menuIds = { Margherita:1, Diavola:2, Orto:3, Prosciutto:4, Bianca:5, Pomodoro:6 };
-		const formatPrice = value => '$' + value.toLocaleString('es-CL');
+		const formatPrice = value => '$' + Number(value || 0).toLocaleString('es-CL');
 		const panel = document.querySelector('#cart-panel');
+		const authButtons = {
+			login: document.querySelector('#login-open'),
+			register: document.querySelector('#register-open'),
+			admin: document.querySelector('#admin-open')
+		};
+
+		const fetchJson = async (url, options = {}) => {
+			const response = await fetch(url, {
+				headers: {'Accept': 'application/json', ...(options.headers || {})},
+				...options
+			});
+			const data = await response.json().catch(() => ({}));
+			if (!response.ok) throw new Error(data.error || 'Error del servidor');
+			return data;
+		};
+
+		const openModal = id => {
+			const modal = document.querySelector(`#${id}`);
+			if (modal) modal.classList.add('open');
+		};
+
+		const closeModal = id => {
+			const modal = document.querySelector(`#${id}`);
+			if (modal) modal.classList.remove('open');
+		};
+
 		const renderCart = () => {
 			const items = document.querySelector('#cart-items');
 			document.querySelector('#cart-count').textContent = cart.length;
@@ -172,86 +198,216 @@
 			else items.innerHTML = cart.map(item => `<div class="cart-item"><strong>${item.name}</strong><span>${formatPrice(item.price)}</span></div>`).join('');
 			document.querySelector('#cart-total').textContent = formatPrice(cart.reduce((sum, item) => sum + item.price, 0));
 		};
-		document.querySelectorAll('.add').forEach(button => button.addEventListener('click', () => { cart.push({ id:menuIds[button.dataset.name], name:button.dataset.name, price:Number(button.dataset.price) }); renderCart(); panel.classList.add('open'); }));
+
+		const updateAuthUi = user => {
+			const loggedIn = Boolean(user);
+			const isAdmin = user && user.role === 'admin';
+			authButtons.login.style.display = loggedIn ? 'none' : 'inline-block';
+			authButtons.register.style.display = loggedIn ? 'none' : 'inline-block';
+			authButtons.admin.style.display = isAdmin ? 'inline-block' : 'inline-block';
+			authButtons.admin.textContent = isAdmin ? 'Administrador' : 'Administradores';
+			if (user) {
+				document.querySelector('#account-welcome').textContent = `Bienvenido, ${user.name}. Aquí puedes consultar tus pedidos.`;
+			}
+		};
+
+		const loadSession = async () => {
+			try {
+				const result = await fetchJson('api/session.php');
+				if (result.user) {
+					updateAuthUi(result.user);
+					localStorage.setItem('fornoSession', result.user.email);
+					localStorage.setItem('fornoRole', result.user.role);
+					return result.user;
+				}
+			} catch (_error) {
+				console.warn('No fue posible cargar la sesión activa.');
+			}
+			localStorage.removeItem('fornoSession');
+			localStorage.removeItem('fornoRole');
+			updateAuthUi(null);
+			return null;
+		};
+
+		const loadAdminStats = async () => {
+			try {
+				const result = await fetchJson('api/admin.php');
+				const stats = result.stats || {};
+				document.querySelector('#admin-modal .admin-stat strong').textContent = stats.menuItems ?? '0';
+				const statNodes = document.querySelectorAll('#admin-modal .admin-stat strong');
+				if (statNodes.length >= 3) {
+					statNodes[1].textContent = stats.ordersToday ?? '0';
+					statNodes[2].textContent = '$' + Number(stats.salesToday || 0).toLocaleString('es-CL');
+				}
+				const orders = result.orders || [];
+				const list = document.querySelector('#admin-modal .admin-orders');
+				if (list) {
+					list.innerHTML = '<h3>Pedidos recientes</h3>' + orders.map(order => {
+						const status = order.status || 'received';
+						const total = Number(order.total || 0).toLocaleString('es-CL');
+						return `<div class="admin-order"><strong>#${order.id} · ${order.customer_name || 'Cliente'}</strong><span>${status} · $${total}</span></div>`;
+					}).join('') || '<h3>Pedidos recientes</h3><div class="admin-order"><strong>No hay pedidos</strong><span>Sin actividad</span></div>';
+				}
+			} catch (_error) {
+				console.warn('No se pudieron cargar los datos del administrador.');
+			}
+		};
+
+		document.querySelectorAll('.add').forEach(button => button.addEventListener('click', () => {
+			cart.push({ id: menuIds[button.dataset.name], name: button.dataset.name, price: Number(button.dataset.price) });
+			renderCart();
+			panel.classList.add('open');
+		}));
 		document.querySelector('#cart-toggle').addEventListener('click', () => panel.classList.toggle('open'));
 		document.querySelector('#cart-close').addEventListener('click', () => panel.classList.remove('open'));
 		document.querySelector('#checkout').addEventListener('click', () => {
-			if (!cart.length) { alert('Agrega una pizza para continuar.'); return; }
+			if (!cart.length) {
+				alert('Agrega una pizza para continuar.');
+				return;
+			}
 			document.querySelector('#payment-options').classList.add('visible');
-			document.querySelector('#payment-options').scrollIntoView({ behavior:'smooth', block:'nearest' });
+			document.querySelector('#payment-options').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 		});
+
 		document.querySelector('#confirm-payment').addEventListener('click', async () => {
 			const selected = document.querySelector('input[name="payment"]:checked');
-			if (!selected) { alert('Selecciona una forma de pago.'); return; }
-			if (!localStorage.getItem('fornoSession')) { alert('Inicia sesión antes de confirmar el pedido.'); return; }
+			if (!selected) {
+				alert('Selecciona una forma de pago.');
+				return;
+			}
+			if (!localStorage.getItem('fornoSession')) {
+				alert('Inicia sesión antes de confirmar el pedido.');
+				return;
+			}
 			const phone = document.querySelector('#customer-phone').value.trim();
 			const address = document.querySelector('#delivery-address').value.trim();
-			if (!phone || !address) { alert('Completa tu teléfono y dirección de entrega.'); return; }
-			const items = cart.map(item => ({ menuItemId:item.id, quantity:1 }));
+			if (!phone || !address) {
+				alert('Completa tu teléfono y dirección de entrega.');
+				return;
+			}
+			const items = cart.map(item => ({ menuItemId: item.id, quantity: 1 }));
 			try {
-				const response = await fetch('api/order.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ customerPhone:phone, deliveryAddress:address, paymentMethod:selected.value, items }) });
-				const result = await response.json();
-				if (!response.ok) { alert(result.error || 'No se pudo registrar el pedido.'); return; }
-				document.querySelector('#payment-confirmed').textContent = `Pedido #${result.orderId} confirmado con ${selected.value}.`;
-			} catch (_error) { alert('No se pudo conectar con el servidor de XAMPP.'); }
-			document.querySelector('#payment-confirmed').classList.add('visible');
+				const result = await fetchJson('api/order.php', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({ customerPhone: phone, deliveryAddress: address, paymentMethod: selected.value, items })
+				});
+				const confirmed = document.querySelector('#payment-confirmed');
+				confirmed.textContent = `Pedido #${result.orderId} confirmado con ${selected.value}.`;
+				confirmed.classList.add('visible');
+				cart.length = 0;
+				renderCart();
+			} catch (error) {
+				alert(error.message || 'No se pudo registrar el pedido.');
+			}
 		});
-		const openModal = id => document.querySelector(`#${id}`).classList.add('open');
-		const closeModal = id => document.querySelector(`#${id}`).classList.remove('open');
+
 		document.querySelector('#login-open').addEventListener('click', () => openModal('login-modal'));
 		document.querySelector('#register-open').addEventListener('click', () => openModal('register-modal'));
-		const adminEmail = 'admin@fornovivo.cl';
-		document.querySelector('#admin-open').addEventListener('click', () => {
-			if (localStorage.getItem('fornoRole') !== 'admin') {
+		document.querySelector('#admin-open').addEventListener('click', async () => {
+			const user = await loadSession();
+			if (!user || user.role !== 'admin') {
 				alert('Debes iniciar sesión con una cuenta administrativa para acceder.');
 				return;
 			}
+			await loadAdminStats();
 			openModal('admin-modal');
 		});
+
 		document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeModal(button.dataset.close)));
-	document.querySelectorAll('.modal-backdrop').forEach(modal => modal.addEventListener('click', event => { if (event.target === modal) closeModal(modal.id); }));
-	document.querySelector('#login-to-register').addEventListener('click', () => { closeModal('login-modal'); openModal('register-modal'); });
-	document.querySelector('#register-to-login').addEventListener('click', () => { closeModal('register-modal'); openModal('login-modal'); });
-	document.querySelector('#register-form').addEventListener('submit', async event => {
-		event.preventDefault();
-		const email = document.querySelector('#register-email').value.trim().toLowerCase();
-		const message = document.querySelector('#register-message');
-		try {
-			const response = await fetch('api/register.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name:document.querySelector('#register-name').value.trim(), email, password:document.querySelector('#register-password').value }) });
-			const result = await response.json();
-			if (!response.ok) { message.textContent = result.error || 'No se pudo crear la cuenta.'; return; }
-			message.textContent = 'Cuenta creada. Has iniciado sesión.';
-			event.target.reset();
-			localStorage.setItem('fornoSession', result.user.email);
-			document.querySelector('#account-welcome').textContent = `Bienvenido, ${result.user.name}. Aquí puedes consultar tus pedidos.`;
-			closeModal('register-modal'); openModal('account-modal');
-		} catch (_error) { message.textContent = 'Activa Apache y MySQL para crear la cuenta.'; }
-	});
-	document.querySelector('#login-form').addEventListener('submit', async event => {
-		event.preventDefault();
-		const email = document.querySelector('#login-email').value.trim().toLowerCase();
-		const password = document.querySelector('#login-password').value;
-		try {
-			const response = await fetch('api/login.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email, password }) });
-			const result = await response.json();
-			if (!response.ok) { document.querySelector('#login-message').textContent = result.error || 'Correo o contraseña incorrectos.'; return; }
-			localStorage.setItem('fornoSession', result.user.email);
-			localStorage.setItem('fornoRole', result.user.role);
-			event.target.reset();
+		document.querySelectorAll('.modal-backdrop').forEach(modal => modal.addEventListener('click', event => {
+			if (event.target === modal) closeModal(modal.id);
+		}));
+		document.querySelector('#login-to-register').addEventListener('click', () => {
 			closeModal('login-modal');
-			if (result.user.role === 'admin') openModal('admin-modal');
-			else { document.querySelector('#account-welcome').textContent = `Bienvenido, ${result.user.name}. Aquí puedes consultar tus pedidos.`; openModal('account-modal'); }
-		} catch (_error) { document.querySelector('#login-message').textContent = 'Activa Apache y MySQL para iniciar sesión.'; }
-	});
-	document.querySelectorAll('[data-logout]').forEach(button => button.addEventListener('click', () => {
-		localStorage.removeItem('fornoSession');
-		localStorage.removeItem('fornoRole');
-		document.querySelectorAll('.modal-backdrop').forEach(modal => modal.classList.remove('open'));
-		alert('Sesión cerrada correctamente.');
-	}));
-		document.querySelectorAll('.filter').forEach(filter => filter.addEventListener('click', () => { document.querySelectorAll('.filter').forEach(item => item.classList.remove('active')); filter.classList.add('active'); document.querySelectorAll('.pizza-card').forEach(card => card.classList.toggle('hidden', filter.dataset.filter !== 'all' && card.dataset.category !== filter.dataset.filter)); }));
+			openModal('register-modal');
+		});
+		document.querySelector('#register-to-login').addEventListener('click', () => {
+			closeModal('register-modal');
+			openModal('login-modal');
+		});
+
+		document.querySelector('#register-form').addEventListener('submit', async event => {
+			event.preventDefault();
+			const email = document.querySelector('#register-email').value.trim().toLowerCase();
+			const message = document.querySelector('#register-message');
+			try {
+				const result = await fetchJson('api/register.php', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: document.querySelector('#register-name').value.trim(),
+						email,
+						password: document.querySelector('#register-password').value
+					})
+				});
+				message.textContent = 'Cuenta creada. Has iniciado sesión.';
+				event.target.reset();
+				updateAuthUi(result.user);
+				localStorage.setItem('fornoSession', result.user.email);
+				localStorage.setItem('fornoRole', result.user.role);
+				closeModal('register-modal');
+				openModal('account-modal');
+			} catch (error) {
+				message.textContent = error.message || 'No se pudo crear la cuenta.';
+			}
+		});
+
+		document.querySelector('#login-form').addEventListener('submit', async event => {
+			event.preventDefault();
+			const email = document.querySelector('#login-email').value.trim().toLowerCase();
+			const password = document.querySelector('#login-password').value;
+			const message = document.querySelector('#login-message');
+			try {
+				const result = await fetchJson('api/login.php', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, password })
+				});
+				updateAuthUi(result.user);
+				localStorage.setItem('fornoSession', result.user.email);
+				localStorage.setItem('fornoRole', result.user.role);
+				event.target.reset();
+				closeModal('login-modal');
+				if (result.user.role === 'admin') {
+					await loadAdminStats();
+					openModal('admin-modal');
+					return;
+				}
+				document.querySelector('#account-welcome').textContent = `Bienvenido, ${result.user.name}. Aquí puedes consultar tus pedidos.`;
+				openModal('account-modal');
+			} catch (error) {
+				message.textContent = error.message || 'Correo o contraseña incorrectos.';
+			}
+		});
+
+		document.querySelectorAll('[data-logout]').forEach(button => button.addEventListener('click', async () => {
+			try {
+				await fetchJson('api/logout.php', { method: 'POST' });
+			} catch (_error) {
+				console.warn('No se pudo cerrar la sesión del servidor.');
+			}
+			localStorage.removeItem('fornoSession');
+			localStorage.removeItem('fornoRole');
+			updateAuthUi(null);
+			document.querySelectorAll('.modal-backdrop').forEach(modal => modal.classList.remove('open'));
+			alert('Sesión cerrada correctamente.');
+		}));
+
+		document.querySelectorAll('.filter').forEach(filter => filter.addEventListener('click', () => {
+			document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
+			filter.classList.add('active');
+			document.querySelectorAll('.pizza-card').forEach(card => card.classList.toggle('hidden', filter.dataset.filter !== 'all' && card.dataset.category !== filter.dataset.filter));
+		}));
+
 		const imageFallback = 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1000&q=85';
-		document.querySelectorAll('img').forEach(image => image.addEventListener('error', () => { if (image.src !== imageFallback) image.src = imageFallback; }, { once:true }));
+		document.querySelectorAll('img').forEach(image => image.addEventListener('error', () => {
+			if (image.src !== imageFallback) image.src = imageFallback;
+		}, { once: true }));
+
+		renderCart();
+		updateAuthUi(null);
+		loadSession();
 	</script>
 </body>
 </html>
